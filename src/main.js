@@ -31,7 +31,6 @@ router.afterEach(to => {
 })
 
 Vue.config.productionTip = false
-
 Vue.use(Buefy)
 
 new Vue({

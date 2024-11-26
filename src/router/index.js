@@ -17,68 +17,31 @@ const routes = [
   },
   {
     meta: {
-      title: 'Tables'
+      title: 'Mark'
     },
-    path: '/tables',
-    name: 'tables',
+    path: '/Mark',
+    name: 'mark',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "tables" */ '@/views/TablesView.vue')
+    component: () => import(/* webpackChunkName: "tables" */ '@/views/MarkView.vue')
   },
   {
     meta: {
-      title: 'Forms'
+      title: 'Videos'
     },
-    path: '/forms',
-    name: 'forms',
-    component: () => import(/* webpackChunkName: "forms" */ '@/views/FormsView.vue')
-  },
-  {
-    meta: {
-      title: 'Profile'
-    },
-    path: '/profile',
-    name: 'profile',
-    component: () => import(/* webpackChunkName: "profile" */ '@/views/ProfileView.vue')
-  },
-  {
-    meta: {
-      title: 'New Client'
-    },
-    path: '/client/new',
-    name: 'client.new',
-    component: () => import(/* webpackChunkName: "client-form" */ '@/views/ClientFormView.vue')
-  },
-  {
-    meta: {
-      title: 'Edit Client'
-    },
-    path: '/client/:id',
-    name: 'client.edit',
-    component: () => import(/* webpackChunkName: "client-form" */ '@/views/ClientFormView.vue'),
-    props: true
-  },
-  {
-    path: '/full-page',
-    component: () => import(/* webpackChunkName: "full-page" */ '@/views/FullPageView.vue'),
-    children: [
-      {
-        meta: {
-          title: 'Login'
-        },
-        path: '/login',
-        name: 'login',
-        component: () => import(/* webpackChunkName: "full-page" */ '@/views/full-page/LoginView.vue')
-      }
-    ]
+    path: '/videos',
+    name: 'videos',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "tables" */ '@/views/VideosView.vue')
   }
-
 ]
 
 const router = new VueRouter({
   routes,
-  scrollBehavior (to, from, savedPosition) {
+  scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     } else {
@@ -89,6 +52,6 @@ const router = new VueRouter({
 
 export default router
 
-export function useRouter () {
+export function useRouter() {
   return router
 }

@@ -3,7 +3,6 @@
     <nav-bar />
     <aside-menu :menu="menu" />
     <router-view />
-    <footer-bar />
   </div>
 </template>
 

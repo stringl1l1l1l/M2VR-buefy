@@ -13,7 +13,7 @@
           </ul>
         </div>
       </div>
-      <div class="level-right">
+      <!-- <div class="level-right">
         <div class="level-item">
           <div class="buttons is-right">
             <a
@@ -29,7 +29,7 @@
             </a>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </section>
 </template>

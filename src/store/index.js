@@ -22,16 +22,16 @@ const store = new Vuex.Store({
     isAsideMobileExpanded: false,
 
     /* Sample data (commonly used) */
-    clients: []
+    clients: [],
+    bvids: []
   },
   mutations: {
     /* A fit-them-all commit */
-    basic (state, payload) {
+    basic(state, payload) {
       state[payload.key] = payload.value
     },
-
     /* User */
-    user (state, payload) {
+    user(state, payload) {
       if (payload.name) {
         state.userName = payload.name
       }
@@ -44,7 +44,7 @@ const store = new Vuex.Store({
     },
 
     /* Aside Mobile */
-    asideMobileStateToggle (state, payload = null) {
+    asideMobileStateToggle(state, payload = null) {
       const htmlClassName = 'has-aside-mobile-expanded'
 
       let isShow
@@ -65,14 +65,14 @@ const store = new Vuex.Store({
     },
 
     /* Full Page mode */
-    fullPage (state, payload) {
+    fullPage(state, payload) {
       state.isNavBarVisible = !payload
       state.isAsideVisible = !payload
       state.isFooterBarVisible = !payload
     }
   },
   actions: {
-    asideDesktopOnlyToggle (store, payload = null) {
+    asideDesktopOnlyToggle(store, payload = null) {
       let method
 
       switch (payload) {
@@ -87,12 +87,12 @@ const store = new Vuex.Store({
       }
       document.documentElement.classList[method]('has-aside-desktop-only-visible')
     },
-    toggleFullPage ({ commit }, payload) {
+    toggleFullPage({ commit }, payload) {
       commit('fullPage', payload)
 
       document.documentElement.classList[!payload ? 'add' : 'remove']('has-aside-left', 'has-navbar-fixed-top')
     },
-    fetch ({ commit }, payload) {
+    fetch({ commit }, payload) {
       axios
         .get(`data-sources/${payload}.json`)
         .then((r) => {
@@ -112,6 +112,6 @@ const store = new Vuex.Store({
 
 export default store
 
-export function useStore () {
+export function useStore() {
   return store
 }
