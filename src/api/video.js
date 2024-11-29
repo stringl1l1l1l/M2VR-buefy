@@ -20,3 +20,7 @@ export async function findVideoByBvid(bvid) {
 export async function findNotMarkedBvidListWithTopicId(topicId) {
   return http.getRestApi("/video/findNotMarkedBvidListWithTopicId", topicId)
 }
+
+export async function setMarkedByBvid(bvid) {
+  return http.put("/video/setMarkedByBvid", bvid)
+}

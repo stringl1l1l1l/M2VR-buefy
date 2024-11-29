@@ -8,7 +8,8 @@
                     <b-table-column label="Status" v-slot="props">
                         <div class="container">
                             <div class="column">
-                                <b-tag v-if="props.row['marked'] == 0" type="is-danger"> 未标注 </b-tag>
+                                <b-tag v-if="!props.row['marked']" type="is-danger"> 未开始 </b-tag>
+                                <b-tag v-else-if="!props.row['label']" type="is-light"> 进行中 </b-tag>
                                 <b-tag v-else type="is-primary">已完成 </b-tag>
                             </div>
                         </div>
@@ -17,7 +18,7 @@
                     <b-table-column label="Operation" v-slot="props">
                         <div class="container">
                             <div class="column">
-                                <b-button size="is-small " type="is-primary is-light" @click="next(props.row)">选择</b-button>
+                                <b-button size="is-small " type="is-primary is-light" :disabled="props.row['marked'] && props.row['label'] " @click="next(props.row)">选择</b-button>
                             </div>
                         </div>
                     </b-table-column>

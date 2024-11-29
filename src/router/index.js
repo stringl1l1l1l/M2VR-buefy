@@ -46,6 +46,10 @@ const routes = [
         path: 'mark',
         component: () => import(/* webpackChunkName: "tables" */ '@/views/MarkView.vue'),
       },
+      {
+        path: 'label',
+        component: () => import(/* webpackChunkName: "tables" */ '@/views/LabelView.vue'),
+      },
     ]
   },
   {

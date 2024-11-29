@@ -67,7 +67,7 @@ export default {
     data() {
         return {
             minioBaseURL: import.meta.env.VITE_MINIO_BASE_API,
-            titleStack: ['Workflow', 'Mark'],
+            titleStack: ['Workflow', 'Label'],
             isEmpty: [true, true],
             loading: [true, true],
             buttonLoading: false,
@@ -102,9 +102,7 @@ export default {
                     ? value.substr(0, length) + '...'
                     : value
         },
-        gotoLabel() {
-            this.$router.push({ path: '/workflow/label', query: { video: this.videos[0] } })
-        },
+        gotoLabel() { },
         async onClickNextVideo() {
             const markObj = { begin: String, end: String, mark: Number, topicId: Number }
             markObj.topicId = this.topicId;
