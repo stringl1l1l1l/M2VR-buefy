@@ -2,23 +2,34 @@
   <div>
     <section class="section is-main-section">
       <card-component class="has-table has-mobile-sort-spaced">
-        <table-sample checkable :data="list" :columns="columns" />
+        <table-sample :maxChar="50" :loading="loading" :data="list" :columns="columns">
+          <b-table-column width="1em" field="cover" label="Operation">
+            <div class="container">
+              <div class="column">
+                <b-button class="is-fullwidth" size="is-small" type="is-info">Update</b-button>
+              </div>
+              <div class="column">
+                <b-button class="is-fullwidth" size="is-small" type="is-danger">Delete</b-button>
+              </div>
+            </div>
+          </b-table-column>
+        </table-sample>
       </card-component>
     </section>
   </div>
 </template>
-  
+
 <script>
 import { defineComponent } from 'vue'
 import NotificationBar from '@/components/NotificationBar.vue'
-import { findVideosByPages, findAllVideos } from "@/api/video";
+import { findAllVideos, findVideosByTopicId } from "@/api/video";
 import CardComponent from '@/components/CardComponent.vue'
 import TitleBar from '@/components/TitleBar.vue'
 import HeroBar from '@/components/HeroBar.vue'
 import TableSample from '@/components/TableSample.vue'
 
 export default defineComponent({
-  name: 'VideosView',
+  name: 'VideoView',
   components: {
     HeroBar,
     TitleBar,
@@ -27,7 +38,7 @@ export default defineComponent({
     NotificationBar
   },
   created() {
-    this.fetchData();
+    this.fetchData(this.$route.query.topicId);
     this.columns = Object.keys(this.video)
       .map(key => ({
         field: key,
@@ -38,10 +49,12 @@ export default defineComponent({
     return {
       list: [],
       titleStack: ['Home', 'Videos'],
-      columns: [],
+      loading: true,
+      columns: Array,
       video: {
-        cover: '',
         bvid: '',
+        topicId: 0,
+        cover: '',
         title: '',
         author: '',
         updateTime: '',
@@ -57,12 +70,21 @@ export default defineComponent({
     }
   },
   methods: {
-    fetchData() {
-      findAllVideos().then(response => {
-        this.list = response.data
-      })
+    fetchData(query) {
+      if (!query) {
+        findAllVideos().then(response => {
+          this.list = response.data
+          this.loading = false
+        })
+      }
+      else {
+        findVideosByTopicId(query).then(response => {
+          this.list = response.data
+          this.loading = false
+        })
+      }
     }
-  }
+  },
 })
 </script>
   

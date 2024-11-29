@@ -13,11 +13,11 @@ module.exports = defineConfig({
     },
     //代理可以写多个，代理不同的后端地址
     proxy: {
-      [import.meta.env.VUE_APP_BASE_API]: {
-        target: import.meta.env.VUE_APP_BASE_API,
+      [import.meta.env.VITE_VUE_APP_BASE_API]: {
+        target: import.meta.env.VITE_VUE_APP_BASE_API,
         changeOrigin: true,
         pathRewrite: {
-          ['^' + import.meta.env.VUE_APP_BASE_API]: ''
+          ['^' + import.meta.env.VITE_VUE_APP_BASE_API]: ''
         }
       }
     },

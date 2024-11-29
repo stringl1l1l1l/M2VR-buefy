@@ -16,13 +16,15 @@
     "bulma": "^0.9.3",
     "chart.js": "^3.7.1",
     "core-js": "^3.19.1",
+    "js-cookie": "^3.0.5",
     "lodash": "^4.17.20",
+    "minio": "^8.0.2",
+    "minio-js": "^1.0.7",
     "numeral": "^2.0.6",
     "vue": "^2.7.14",
     "vue-chartjs": "^4.0.5",
     "vue-router": "^3.5.3",
-    "vuex": "^3.6.2",
-    "js-cookie": "^3.0.5"
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.19.1",

@@ -8,3 +8,15 @@ export async function findVideosByPages(pageNum) {
 export async function findAllVideos() {
   return http.get("/video/findAllVideos")
 }
+
+export async function findVideosByTopicId(topicId) {
+  return http.getRestApi("/video/findVideosByTopicId", topicId)
+}
+
+export async function findVideoByBvid(bvid) {
+  return http.getRestApi("/video/findVideoByBvid", bvid)
+}
+
+export async function findNotMarkedBvidListWithTopicId(topicId) {
+  return http.getRestApi("/video/findNotMarkedBvidListWithTopicId", topicId)
+}

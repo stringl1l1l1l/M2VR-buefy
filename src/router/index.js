@@ -28,14 +28,36 @@ const routes = [
   },
   {
     meta: {
-      title: 'Videos'
+      title: 'Workflow'
     },
-    path: '/videos',
-    name: 'videos',
+    path: '/workflow',
+    name: 'workflow',
+    component: () => import(/* webpackChunkName: "tables" */ '@/views/WorkflowView.vue'),
+    children: [
+      {
+        path: 'topic',
+        component: () => import(/* webpackChunkName: "tables" */ '@/views/TopicView.vue'),
+      },
+      {
+        path: 'video',
+        component: () => import(/* webpackChunkName: "tables" */ '@/views/VideoMarkView.vue'),
+      },
+      {
+        path: 'mark',
+        component: () => import(/* webpackChunkName: "tables" */ '@/views/MarkView.vue'),
+      },
+    ]
+  },
+  {
+    meta: {
+      title: 'Video'
+    },
+    path: '/video',
+    name: 'video',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "tables" */ '@/views/VideosView.vue')
+    component: () => import(/* webpackChunkName: "tables" */ '@/views/VideoView.vue')
   }
 ]
 
