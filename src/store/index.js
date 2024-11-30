@@ -22,7 +22,9 @@ const store = new Vuex.Store({
     isAsideMobileExpanded: false,
 
     /* Sample data (commonly used) */
-    originVideosList: []
+    originVideosList: [],
+    latestOperatedMarkMask: 0,
+    latestOperatedBvidsSet: new Set()
   },
   mutations: {
     /* A fit-them-all commit */
@@ -42,7 +44,18 @@ const store = new Vuex.Store({
         state.userAvatar = payload.avatar
       }
     },
-
+    addMark(state, mark) {
+      state.latestOperatedMarkMask |= mark
+    },
+    clearMark(state) {
+      state.latestOperatedMarkMask = 0
+    },
+    add2Set(state, key, val) {
+      state[key].add(val)
+    },
+    clearSet(state, key) {
+      state[key] = new Set()
+    },
     /* Aside Mobile */
     asideMobileStateToggle(state, payload = null) {
       const htmlClassName = 'has-aside-mobile-expanded'

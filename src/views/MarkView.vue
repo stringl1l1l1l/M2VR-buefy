@@ -30,12 +30,14 @@
                 </div>
                 <div class="columns">
                     <div class="column has-text-centered">
-                        <b-button v-if="markDone" type="is-primary " @click="gotoLabel()">视频全部标注完成，点击进行下一步</b-button>
-                        <b-button v-else-if="epochDone" :loading="this.buttonLoading" type="is-info is-light"
+                        <b-button v-if="!epochDone" :loading="this.buttonLoading" type=" is-light"
+                            @click="onClickNextVideo()"
+                            :disabled="this.originFrames.length == 0 || radio == 0">下一个视频</b-button>
+                        <b-button v-else-if="markDone" type="is-primary " @click="gotoLabel()">视频全部标注完成，点击进行下一步</b-button>
+                        <b-button v-else :loading="this.buttonLoading" type="is-info is-light"
                             :disabled="this.originFrames.length == 0 || radio == 0"
                             @click="nextEpoch()">该轮次标注完毕，点击进行下一步</b-button>
-                        <b-button v-else :loading="this.buttonLoading" type=" is-light" @click="onClickNextVideo()"
-                            :disabled="this.originFrames.length == 0 || radio == 0">下一个视频</b-button>
+
                     </div>
                 </div>
             </card-component>
@@ -58,8 +60,10 @@ export default {
     created() {
         if (this.$route.query && this.$route.query.bvid)
             this.originVideosList = [this.$route.query]
-        else
+        else if (this.$store.state.originVideosList)
             this.originVideosList = this.$store.state.originVideosList
+        else
+            this.$router.back()
         // console.log(this.originVideosList)
     },
     data() {
@@ -93,7 +97,7 @@ export default {
             return this.originVideoListPtr == this.originVideosList.length - 1 && this.epochDone
         },
         epochDone() {
-            return (this.todoBvidList.length == 0 && this.originVideo.marked) || this.todoBvidListPtr == this.todoBvidList.length;
+            return this.todoBvidListPtr >= this.todoBvidList.length + 1;
         },
         originVideo() {
             return this.originVideosList.length ? this.originVideosList[this.originVideoListPtr] : {}
@@ -102,7 +106,6 @@ export default {
             return [this.originVideo, this.targetVideo]
         },
         twoFrames() {
-            console.log(this.targetFrames)
             return [this.originFrames, this.targetFrames]
         },
         framesIsEmpty() {
@@ -115,6 +118,7 @@ export default {
             // console.log(this.todoBvidList)
 
             this.targetVideo = await this.fetchNextTargetVideo(this.todoBvidList)
+            this.todoBvidListPtr++
             // console.log(this.targetVideo)
             this.originFrames = await this.fetchFrames(this.originVideo)
             this.targetFrames = await this.fetchFrames(this.targetVideo)
@@ -136,7 +140,6 @@ export default {
                 if (video.marked) continue;
                 else break;
             }
-            this.todoBvidListPtr++
             return video
         },
         async onClickNextVideo() {
@@ -147,15 +150,19 @@ export default {
             markedObj.mark = this.radio;
 
             await insertMark(markedObj);
+            // this.$store.commit('addMark2LatestMarks', markedObj)
+            this.$store.commit('add2Set', markedObj.end)
+            this.$store.commit('addMark', markedObj.mark)
             this.buttonLoading = true;
             this.targetVideo = await this.fetchNextTargetVideo(this.todoBvidList);
+            this.todoBvidListPtr++;
             this.targetFrames = await this.fetchFrames(this.targetVideo)
             this.buttonLoading = false;
         },
         async gotoLabel() {
             if (!this.originVideo.marked)
                 await setMarkedByBvid(this.originVideo.bvid)
-            this.$router.push({ path: '/workflow/label', query: { ...this.originVideo } })
+            this.$router.push({ path: '/workflow/label', query: { topicId: this.originVideo.topicId } })
         },
         nextEpoch() {
             this.originVideoListPtr++
@@ -173,7 +180,7 @@ export default {
     watch: {
         originVideo() {
             this.initialize()
-        },
+        }
     }
 }
 </script>

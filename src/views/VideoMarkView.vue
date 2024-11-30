@@ -8,7 +8,7 @@
                     <b-table-column label="Status" v-slot="props">
                         <div class="container">
                             <div class="column">
-                                <b-tag v-if="!props.row['marked']" type="is-danger"> 待标注 </b-tag>
+                                <b-tag v-if="!props.row['mark']" type="is-danger"> 待标注 </b-tag>
                                 <b-tag v-else-if="!props.row['label']" type="is-info"> 进行中 </b-tag>
                                 <b-tag v-else type="is-primary">已完成 </b-tag>
                             </div>
@@ -19,7 +19,7 @@
                         <div class="container">
                             <div class="column">
                                 <b-button size="is-small " type="is-primary is-light"
-                                    :disabled="props.row['marked'] && props.row['label'] || enableNext"
+                                    :disabled="props.row['mark'] && props.row['label'] || enableNext"
                                     @click="gotoMark(props.row)">选择</b-button>
                             </div>
                         </div>
@@ -115,6 +115,7 @@ export default defineComponent({
             }
         },
         gotoMark(params) {
+            this.$store.commit('add2Set', 'latestOperatedBvidsSet', params.bvid)
             this.$router.push({ path: '/workflow/mark', query: { ...this.paramFilter(params) } });
         },
         gotoMarkWithCheckedRows(rows) {
@@ -124,6 +125,12 @@ export default defineComponent({
             this.$router.push({ path: '/workflow/mark' })
         }
     },
+    watch: {
+        checkedRows(newVal) {
+            const bvids = new Set(newVal.map(row => (row.bvid)))
+            this.$store.commit('basic', { key: 'latestOperatedBvidsSet', value: bvids })
+        }
+    }
 })
 </script>
     

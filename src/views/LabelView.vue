@@ -1,7 +1,25 @@
 <template>
     <div>
         <card-component>
-            <title-bar :title-stack="titleStack" />
+            <title-bar :next="next()" enable-next :title-stack="titleStack" />
+
+            <card-component style="height:330px;" class="has-text-centered" :item="frames">
+                <div class="level">
+                    <div class="level-item" v-for="(value, key) in (videoFilter(twoVideos[index]))" :key="key">
+                        <div>
+                            <p style="font-weight: bold;">{{ key }}</p>
+                            <p>{{ truncate(value, 30) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <b-carousel-list :data="frames" :items-to-show="10" />
+                <b-loading :is-full-page="false" :active="framesLoading[index]"></b-loading>
+                <div class="container" v-if="framesIsEmpty[index]">
+                    <p v-if="markDone">标注已完成</p>
+                    <p v-else>暂无数据</p>
+                </div>
+            </card-component>
+
             <section>
                 <b-field>
                     <b-checkbox-button class="has-text-centered" v-for="(value, key) in this.MARK_EMUMS" :key="key"
@@ -11,26 +29,16 @@
                 </b-field>
             </section>
         </card-component>
-        <card-component>
-            <b-carousel-list :data="frames" :items-to-show="10" />
-            <b-loading :is-full-page="false" :active="loading"></b-loading>
-            <!-- <div class="container" v-if="isEmpty[index]">
-                <p v-if="markDone">标注已完成</p>
-                <p v-else>暂无数据</p>
-            </div> -->
-        </card-component>
-        <card-component>
-            <table-sample :searchable="false" :loading="loading" :data="list" :columns="columns"> </table-sample>
-        </card-component>
     </div>
 </template>
 
 <script>
 import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
-import { findMarksByTopicId, findMarksByBegin} from '@/api/mark'
+import { findMarksByTopicId } from '@/api/mark'
 import TableSample from '@/components/TableSample.vue'
 import { getObjectsUrls } from '@/utils/minio'
+import { mapState } from 'vuex'
 
 export default {
     components: {
@@ -39,22 +47,22 @@ export default {
         TableSample
     },
     created() {
-        this.beginVideo = this.$route.query
-        this.bvid = this.$route.query.bvid
-        this.topicId = this.$route.query.topicId
-        this.markedVideosBvidSet.add(this.beginVideo.bvid)
-        this.columns = Object.keys(this.entity)
-            .map(key => ({
-                field: key,
-                label: key
-            }));
-        this.loading = true;
-        this.fetchData()
-        this.loading = false;
+        // console.log(this.latestOperatedBvidsSet)
+        // console.log(this.latestOperatedMarkMask)
+
+        this.initialize()
+
+    },
+    computed: {
+        ...mapState(['latestOperatedBvidsSet', 'latestOperatedMarkMask']),
+        curBvid() {
+            return this.filteredBvidList[this.listPtr]
+        }
     },
     data() {
         return {
             titleStack: ['Workflow', 'Label'],
+            bucketName: import.meta.env.VITE_MINIO_BASE_BUCKET,
             MARK_EMUMS: {
                 Copy: 1 << 0,
                 Event: 1 << 1,
@@ -63,34 +71,42 @@ export default {
                 Dependent: 1 << 4,
                 Independent: 1 << 5,
             },
+
+            bvidMarkMap: {},
+            listPtr: 0,
             frames: [],
-            beginVideo: Object,
-            checkboxGroup: [],
-            columns: Array,
+            filteredMarks: [],
             loading: true,
-            entity: {
-                id: 0,
-                begin: '',
-                end: '',
-                topicId: 0,
-                mark: 0,
-            },
-            list: [],
-            markedVideosBvidSet: new Set(),
         }
     },
     methods: {
-        async fetchData() {
-            this.list = (await findMarksByBegin(this.bvid)).data;
-            this.list.forEach(item => this.markedVideosBvidSet.add(item.end))
+        async initialize() {
+            this.topicId = this.$route.query.topicId
+            this.filteredMarks = await this.fetchFilteredMarks()
+            this.filteredMarks.forEach(item => {
+                this.bvidMarkMap[item.begin] = this.bvidMarkMap[item.begin] ? (this.bvidMarkMap[item.begin] | item.mark) : 0
+                this.bvidMarkMap[item.end] = this.bvidMarkMap[item.end] ? (this.bvidMarkMap[item.end] | item.mark) : 0
+            })
+            console.log(this.bvidMarkMap)
+            this.frames = await this.fetchFrames({ bvid: this.curBvid, topicId: this.topicId })
+            this.loading = false;
         },
-        async fetchFrames(video) {
-            const arr = await getObjectsUrls("archived", `${video.topicId}/${video.bvid}`)
-            if (arr.length != 0)
-                this.isEmpty = false
-            this.twoFrames = arr.map(url => ({ image: url }))
-            this.loading = false
+        async fetchFilteredMarks() {
+            let marks = (await findMarksByTopicId(this.topicId)).data;
+            return marks.filter(mark => (this.latestOperatedMarkMask | mark.mark)
+                && this.latestOperatedBvidsSet.has(mark.begin)
+                && this.latestOperatedBvidsSet.has(mark.end)
+            )
         },
+        async fetchFrames(video, bucketName = this.bucketName) {
+            const urls = await getObjectsUrls(bucketName, `${video.topicId}/${video.bvid}`)
+            return urls.map(url => ({ image: url }))
+        },
+        next() {
+
+        }
     },
+    watch: {
+    }
 }
-</script>
+</script> 
