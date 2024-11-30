@@ -50,11 +50,11 @@ const store = new Vuex.Store({
     clearMark(state) {
       state.latestOperatedMarkMask = 0
     },
-    add2Set(state, key, val) {
-      state[key].add(val)
+    add2Set(state, val) {
+      state.latestOperatedBvidsSet.add(val)
     },
-    clearSet(state, key) {
-      state[key] = new Set()
+    clearSet(state) {
+      state.latestOperatedBvidsSet = new Set()
     },
     /* Aside Mobile */
     asideMobileStateToggle(state, payload = null) {

@@ -17,10 +17,22 @@ export async function findVideoByBvid(bvid) {
   return http.getRestApi("/video/findVideoByBvid", bvid)
 }
 
+export async function findUnLabeledVediosByBvidList(bvidList) {
+  return http.post("/video/findUnLabeledVediosByBvidList", bvidList)
+}
+
 export async function findNotMarkedBvidListWithTopicId(topicId) {
   return http.getRestApi("/video/findNotMarkedBvidListWithTopicId", topicId)
 }
 
 export async function setMarkedByBvid(bvid) {
   return http.put("/video/setMarkedByBvid", { bvid: bvid })
+}
+
+export async function setMarkMaskByBvid(bvid, mask) {
+  return http.getRestApi("/video/setMarkMaskByBvid", bvid, mask)
+}
+
+export async function setLabelByBvid(bvid, label) {
+  return http.getRestApi("/video/setLabelByBvid", bvid, label)
 }

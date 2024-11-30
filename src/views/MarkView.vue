@@ -48,7 +48,7 @@
 <script>
 import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
-import { findVideoByBvid, setMarkedByBvid } from '@/api/video'
+import { findVideoByBvid, setMarkMaskByBvid } from '@/api/video'
 import { insertMark, findTodoBvidList } from '@/api/mark'
 import { getObjectsUrls } from '@/utils/minio'
 
@@ -62,8 +62,8 @@ export default {
             this.originVideosList = [this.$route.query]
         else if (this.$store.state.originVideosList)
             this.originVideosList = this.$store.state.originVideosList
-        else
-            this.$router.back()
+        // else
+        //     this.$router.back()
         // console.log(this.originVideosList)
     },
     data() {
@@ -86,6 +86,7 @@ export default {
             todoBvidListPtr: 0,
             originFrames: [],
             targetFrames: [],
+            markMask: 0,
 
             framesLoading: [true, true],
             buttonLoading: false,
@@ -137,35 +138,38 @@ export default {
                 if (todoBvidList[i] == this.originVideo.bvid) continue;
 
                 video = (await findVideoByBvid(todoBvidList[i])).data;
-                if (video.marked) continue;
+                if (video.mark) continue;
                 else break;
             }
             return video
         },
         async onClickNextVideo() {
             const markedObj = { begin: String, end: String, mark: Number, topicId: Number }
-            markedObj.topicId = this.originVideo.topicId;
-            markedObj.begin = this.originVideo.bvid;
-            markedObj.end = this.targetVideo.bvid;
-            markedObj.mark = this.radio;
+            markedObj.topicId = this.originVideo.topicId
+            markedObj.begin = this.originVideo.bvid
+            markedObj.end = this.targetVideo.bvid
+            markedObj.mark = this.radio
 
-            await insertMark(markedObj);
-            // this.$store.commit('addMark2LatestMarks', markedObj)
+            this.buttonLoading = true
+
+            await insertMark(markedObj)
             this.$store.commit('add2Set', markedObj.end)
             this.$store.commit('addMark', markedObj.mark)
-            this.buttonLoading = true;
-            this.targetVideo = await this.fetchNextTargetVideo(this.todoBvidList);
-            this.todoBvidListPtr++;
+            this.markMask |= markedObj.mark
+
+            this.targetVideo = await this.fetchNextTargetVideo(this.todoBvidList)
+            this.todoBvidListPtr++
             this.targetFrames = await this.fetchFrames(this.targetVideo)
-            this.buttonLoading = false;
+            this.buttonLoading = false
         },
         async gotoLabel() {
-            if (!this.originVideo.marked)
-                await setMarkedByBvid(this.originVideo.bvid)
-            this.$router.push({ path: '/workflow/label', query: { topicId: this.originVideo.topicId } })
+            this.$router.push({ path: '/workflow/label', query: { topicId: this.originVideo.topicId, topic: this.originVideo.topic } })
         },
-        nextEpoch() {
+        async nextEpoch() {
             this.originVideoListPtr++
+            if (this.originVideo.mark == 0 && this.markMask != 0)
+                await setMarkMaskByBvid(this.originVideo.bvid, (this.markMask | this.originVideo.mark))
+            this.markMask = 0
         },
         videoFilter(video) {
             return { topic: this.originVideo.topic, bvid: video.bvid, title: video.title, author: video.author, area: video.area, tag: video.tag }

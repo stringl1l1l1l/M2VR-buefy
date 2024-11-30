@@ -8,7 +8,7 @@
                     <b-table-column label="Status" v-slot="props">
                         <div class="container">
                             <div class="column">
-                                <b-tag v-if="!props.row['mark']" type="is-danger"> 待标注 </b-tag>
+                                <b-tag v-if="props.row['mark'] == 0" type="is-danger"> 待标注 </b-tag>
                                 <b-tag v-else-if="!props.row['label']" type="is-info"> 进行中 </b-tag>
                                 <b-tag v-else type="is-primary">已完成 </b-tag>
                             </div>
@@ -74,12 +74,6 @@ export default defineComponent({
                 cover: '',
                 title: '',
                 author: '',
-                // updateTime: '',
-                // duration: '',
-                // danmaku: 0,
-                // likes: 0,
-                // play: 0,
-                // collect: 0,
                 area: '',
                 tag: '',
                 description: '',
@@ -95,7 +89,7 @@ export default defineComponent({
                 title: param.title,
                 author: param.author,
                 area: param.area,
-                marked: param.marked,
+                mark: param.mark,
                 label: param.label,
                 tag: param.tag
             }
@@ -117,6 +111,7 @@ export default defineComponent({
         gotoMark(params) {
             this.$store.commit('add2Set', 'latestOperatedBvidsSet', params.bvid)
             this.$router.push({ path: '/workflow/mark', query: { ...this.paramFilter(params) } });
+            console.log(this.$store.state.latestOperatedBvidsSet)
         },
         gotoMarkWithCheckedRows(rows) {
             this.$store.commit('basic', {
@@ -127,8 +122,11 @@ export default defineComponent({
     },
     watch: {
         checkedRows(newVal) {
-            const bvids = new Set(newVal.map(row => (row.bvid)))
-            this.$store.commit('basic', { key: 'latestOperatedBvidsSet', value: bvids })
+            if (newVal.length >= 1) {
+                const bvids = new Set(newVal.map(row => (row.bvid)))
+                this.$store.commit('basic', { key: 'latestOperatedBvidsSet', value: bvids })
+                console.log(this.$store.state.latestOperatedBvidsSet)
+            }
         }
     }
 })
