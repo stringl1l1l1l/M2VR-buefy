@@ -2,20 +2,19 @@
     <div>
         <title-bar :title-stack="titleStack" />
         <section class="section is-main-section">
-
             <card-component style="height:330px;" class="has-text-centered" v-for="(frames, index) in twoFrames"
                 :index="index" :item="frames" :key="index">
                 <div class="level">
-                    <div class="level-item" v-for="(value, key) in (videoFilter(videos[index]))" :key="key">
+                    <div class="level-item" v-for="(value, key) in (videoFilter(twoVideos[index]))" :key="key">
                         <div>
                             <p style="font-weight: bold;">{{ key }}</p>
-                            <p>{{ truncate(value, 50) }}</p>
+                            <p>{{ truncate(value, 30) }}</p>
                         </div>
                     </div>
                 </div>
                 <b-carousel-list :data="frames" :items-to-show="10" />
-                <b-loading :is-full-page="false" :active="loading[index]"></b-loading>
-                <div class="container" v-if="isEmpty[index]">
+                <b-loading :is-full-page="false" :active="framesLoading[index]"></b-loading>
+                <div class="container" v-if="framesIsEmpty[index]">
                     <p v-if="markDone">标注已完成</p>
                     <p v-else>暂无数据</p>
                 </div>
@@ -31,9 +30,12 @@
                 </div>
                 <div class="columns">
                     <div class="column has-text-centered">
-                        <b-button v-if="!markDone" :loading="this.buttonLoading" type="is-primary is-light"
-                            @click="onClickNextVideo()" :disabled="radio == 0">下一个视频</b-button>
-                        <b-button v-else type="is-primary" @click="gotoLabel()">下一步</b-button>
+                        <b-button v-if="markDone" type="is-primary " @click="gotoLabel()">视频全部标注完成，点击进行下一步</b-button>
+                        <b-button v-else-if="epochDone" :loading="this.buttonLoading" type="is-info is-light"
+                            :disabled="this.originFrames.length == 0 || radio == 0"
+                            @click="nextEpoch()">该轮次标注完毕，点击进行下一步</b-button>
+                        <b-button v-else :loading="this.buttonLoading" type=" is-light" @click="onClickNextVideo()"
+                            :disabled="this.originFrames.length == 0 || radio == 0">下一个视频</b-button>
                     </div>
                 </div>
             </card-component>
@@ -54,29 +56,16 @@ export default {
         CardComponent,
     },
     created() {
-        this.videos[0] = this.$route.query
-        this.baseBvid = this.videos[0].bvid
-        this.topicId = this.videos[0].topicId
-        this.fetchTodoBvidList(this.baseBvid, this.topicId)
-        console.log(this.todoBvidList)
-        this.fetchFrames(0)
-        if (this.markDone || this.todoBvidList.length == 0)
-            this.loading[1] = this.loading[0] = false;
-
+        if (this.$route.query && this.$route.query.bvid)
+            this.originVideosList = [this.$route.query]
+        else
+            this.originVideosList = this.$store.state.originVideosList
+        // console.log(this.originVideosList)
     },
     data() {
         return {
-            minioBaseURL: import.meta.env.VITE_MINIO_BASE_API,
             titleStack: ['Workflow', 'Mark'],
-            isEmpty: [true, true],
-            loading: [true, true],
-            buttonLoading: false,
-            pos: 0,
-            videos: [{}, {}],
-            twoFrames: [[], []],
-            baseBvid: String,
-            todoBvidList: [],
-            radio: 0,
+            bucketName: import.meta.env.VITE_MINIO_BASE_BUCKET,
             MARK_EMUMS: {
                 Copy: 1 << 0,
                 Event: 1 << 1,
@@ -85,16 +74,94 @@ export default {
                 Dependent: 1 << 4,
                 Independent: 1 << 5,
             },
+
+            originVideosList: [],
+            originVideoListPtr: 0,
+            targetVideo: {},
+            todoBvidList: [],
+            todoBvidListPtr: 0,
+            originFrames: [],
+            targetFrames: [],
+
+            framesLoading: [true, true],
+            buttonLoading: false,
+            radio: 1,
         }
     },
     computed: {
         markDone() {
-            return this.videos[0].marked || this.pos == this.todoBvidList.length;
+            return this.originVideoListPtr == this.originVideosList.length - 1 && this.epochDone
+        },
+        epochDone() {
+            return (this.todoBvidList.length == 0 && this.originVideo.marked) || this.todoBvidListPtr == this.todoBvidList.length;
+        },
+        originVideo() {
+            return this.originVideosList.length ? this.originVideosList[this.originVideoListPtr] : {}
+        },
+        twoVideos() {
+            return [this.originVideo, this.targetVideo]
+        },
+        twoFrames() {
+            console.log(this.targetFrames)
+            return [this.originFrames, this.targetFrames]
+        },
+        framesIsEmpty() {
+            return [this.originFrames.length == 0, this.targetFrames.length == 0]
         }
     },
     methods: {
+        async initialize() {
+            this.todoBvidList = (await findTodoBvidList(this.originVideo.bvid, this.originVideo.topicId)).data
+            // console.log(this.todoBvidList)
+
+            this.targetVideo = await this.fetchNextTargetVideo(this.todoBvidList)
+            // console.log(this.targetVideo)
+            this.originFrames = await this.fetchFrames(this.originVideo)
+            this.targetFrames = await this.fetchFrames(this.targetVideo)
+
+            this.framesLoading = [false, false]
+            // if (this.markDone || this.todoBvidList.length == 0)
+            //      this.framesLoading = [false, false] 
+        },
+        async fetchFrames(video, bucketName = this.bucketName) {
+            const urls = await getObjectsUrls(bucketName, `${video.topicId}/${video.bvid}`)
+            return urls.map(url => ({ image: url }))
+        },
+        async fetchNextTargetVideo(todoBvidList) {
+            let video = {};
+            for (let i = this.todoBvidListPtr; i < todoBvidList.length; i++) {
+                if (todoBvidList[i] == this.originVideo.bvid) continue;
+
+                video = (await findVideoByBvid(todoBvidList[i])).data;
+                if (video.marked) continue;
+                else break;
+            }
+            this.todoBvidListPtr++
+            return video
+        },
+        async onClickNextVideo() {
+            const markedObj = { begin: String, end: String, mark: Number, topicId: Number }
+            markedObj.topicId = this.originVideo.topicId;
+            markedObj.begin = this.originVideo.bvid;
+            markedObj.end = this.targetVideo.bvid;
+            markedObj.mark = this.radio;
+
+            await insertMark(markedObj);
+            this.buttonLoading = true;
+            this.targetVideo = await this.fetchNextTargetVideo(this.todoBvidList);
+            this.targetFrames = await this.fetchFrames(this.targetVideo)
+            this.buttonLoading = false;
+        },
+        async gotoLabel() {
+            if (!this.originVideo.marked)
+                await setMarkedByBvid(this.originVideo.bvid)
+            this.$router.push({ path: '/workflow/label', query: { ...this.originVideo } })
+        },
+        nextEpoch() {
+            this.originVideoListPtr++
+        },
         videoFilter(video) {
-            return { bvid: video.bvid, title: video.title, author: video.author, area: video.area, tag: video.tag }
+            return { topic: this.originVideo.topic, bvid: video.bvid, title: video.title, author: video.author, area: video.area, tag: video.tag }
         },
         truncate(value, length) {
             if (value != null)
@@ -102,55 +169,11 @@ export default {
                     ? value.substr(0, length) + '...'
                     : value
         },
-        gotoLabel() {
-            this.$router.push({ path: '/workflow/label', query: { video: this.videos[0] } })
-        },
-        async onClickNextVideo() {
-            const markObj = { begin: String, end: String, mark: Number, topicId: Number }
-            markObj.topicId = this.topicId;
-            markObj.begin = this.baseBvid;
-            markObj.end = this.videos[1].bvid;
-            markObj.mark = this.radio;
-
-            await insertMark(markObj);
-            this.buttonLoading = true;
-            await this.fetchNextRefVideo();
-            this.buttonLoading = false;
-            this.radio = 0;
-        },
-        async fetchFrames(videoIdx) {
-            const video = this.videos[videoIdx];
-            const arr = await getObjectsUrls("archived", `${video.topicId}/${video.bvid}`)
-            if (arr.length != 0)
-                this.$set(this.isEmpty, videoIdx, false)
-            this.$set(this.twoFrames, videoIdx, arr.map(url => ({ image: url })))
-            this.$set(this.loading, videoIdx, false)
-        },
-        async fetchTodoBvidList(bvid, topicId) {
-            this.todoBvidList = (await findTodoBvidList(bvid, topicId)).data
-            if (this.todoBvidList.length > 0)
-                this.fetchNextRefVideo()
-        },
-        async fetchNextRefVideo() {
-            let video = null;
-            for (let i = this.pos; i < this.todoBvidList.length; i++) {
-                const bvid = this.todoBvidList[i];
-                if (bvid == this.baseBvid) continue;
-
-                const result = await findVideoByBvid(bvid);
-                video = result.data
-                if (video.marked) continue;
-                else break;
-            }
-            this.$set(this.videos, 1, video)
-            await this.fetchFrames(1);
-            this.pos++;
-        }
     },
     watch: {
-        markDone(newValue) {
-            if (newValue) setMarkedByBvid(this.baseBvid);
-        }
+        originVideo() {
+            this.initialize()
+        },
     }
 }
 </script>

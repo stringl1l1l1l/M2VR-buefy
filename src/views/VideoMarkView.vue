@@ -1,15 +1,15 @@
 <template>
     <div>
-        <title-bar :title-stack="titleStack" />
+        <title-bar @next="gotoMarkWithCheckedRows(checkedRows)" :enable-next="enableNext" :title-stack="titleStack" />
         <section class="section is-main-section">
             <card-component class="has-table has-mobile-sort-spaced">
-                <table-sample :maxChar="25" :perPage="10" :loading="loading" :data="list" :columns="columns">
-
+                <table-sample checkable :checked-rows.sync="checkedRows" :searchable="false" :paginated="false"
+                    :maxChar="25" :loading="loading" :data="list" :columns="columns">
                     <b-table-column label="Status" v-slot="props">
                         <div class="container">
                             <div class="column">
-                                <b-tag v-if="!props.row['marked']" type="is-danger"> 未开始 </b-tag>
-                                <b-tag v-else-if="!props.row['label']" type="is-light"> 进行中 </b-tag>
+                                <b-tag v-if="!props.row['marked']" type="is-danger"> 待标注 </b-tag>
+                                <b-tag v-else-if="!props.row['label']" type="is-info"> 进行中 </b-tag>
                                 <b-tag v-else type="is-primary">已完成 </b-tag>
                             </div>
                         </div>
@@ -18,7 +18,9 @@
                     <b-table-column label="Operation" v-slot="props">
                         <div class="container">
                             <div class="column">
-                                <b-button size="is-small " type="is-primary is-light" :disabled="props.row['marked'] && props.row['label'] " @click="next(props.row)">选择</b-button>
+                                <b-button size="is-small " type="is-primary is-light"
+                                    :disabled="props.row['marked'] && props.row['label'] || enableNext"
+                                    @click="gotoMark(props.row)">选择</b-button>
                             </div>
                         </div>
                     </b-table-column>
@@ -54,8 +56,14 @@ export default defineComponent({
                 label: key // 使用自定义 label 或默认使用属性名
             }));
     },
+    computed: {
+        enableNext() {
+            return this.checkedRows.length >= 1
+        }
+    },
     data() {
         return {
+            checkedRows: [],
             list: [],
             titleStack: ['Workflow', 'Video'],
             loading: true,
@@ -79,6 +87,19 @@ export default defineComponent({
         }
     },
     methods: {
+        paramFilter(param) {
+            return {
+                topic: this.$route.query.topic,
+                topicId: param.topicId,
+                bvid: param.bvid,
+                title: param.title,
+                author: param.author,
+                area: param.area,
+                marked: param.marked,
+                label: param.label,
+                tag: param.tag
+            }
+        },
         fetchData(query) {
             if (!query) {
                 findAllVideos().then(response => {
@@ -93,11 +114,16 @@ export default defineComponent({
                 })
             }
         },
-        next(param) {
-            this.$router.push({ path: '/workflow/mark', query: { ...param } });
+        gotoMark(params) {
+            this.$router.push({ path: '/workflow/mark', query: { ...this.paramFilter(params) } });
+        },
+        gotoMarkWithCheckedRows(rows) {
+            this.$store.commit('basic', {
+                key: 'originVideosList', value: rows.map(row => this.paramFilter(row))
+            })
+            this.$router.push({ path: '/workflow/mark' })
         }
     },
-
 })
 </script>
     

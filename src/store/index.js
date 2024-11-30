@@ -22,12 +22,12 @@ const store = new Vuex.Store({
     isAsideMobileExpanded: false,
 
     /* Sample data (commonly used) */
-    clients: [],
-    bvids: []
+    originVideosList: []
   },
   mutations: {
     /* A fit-them-all commit */
     basic(state, payload) {
+      // console.log(payload)
       state[payload.key] = payload.value
     },
     /* User */

@@ -8,9 +8,9 @@
             <b-input icon="magnify" type="search" v-model="filter" placeholder="搜索..." expanded></b-input>
         </div>
 
-        <b-table narrowed mobile-cards paginated striped hoverable :loading="loading" :checked-rows.sync="checkedRows"
-            :checkable="checkable" :per-page="perPage" :current-page="currentPage" :pagination-position="paginationPosition"
-            :data="data" :default-sort="columns[defaultSortCol].field">
+        <b-table narrowed mobile-cards :paginated="paginated" striped hoverable :loading="loading"
+            :checked-rows.sync="checked" :checkable="checkable" :per-page="perPage" :current-page="currentPage"
+            :pagination-position="paginationPosition" :data="data" :default-sort="columns[defaultSortCol].field">
 
             <b-table-column sortable :width="width" v-for="(col, index) in columns" :key="index" :field="col.field"
                 :label="col.label" v-slot="props">
@@ -40,7 +40,15 @@ import { parseTime, parseDuration } from '@/utils'
 export default defineComponent({
     name: 'TableSample',
     components: { ModalBox },
+    model: {
+        prop: 'value',
+        event: 'input'
+    },
     props: {
+        paginated: {
+            type: Boolean,
+            default: true
+        },
         loading: {
             type: Boolean,
             default: true
@@ -65,6 +73,7 @@ export default defineComponent({
             type: String,
             default: "10em"
         },
+        checkedRows: Array,
         perPage: {
             type: Number,
             default: 4
@@ -72,10 +81,10 @@ export default defineComponent({
     },
     data() {
         return {
-            checkedRows: [],
             isModalActive: false,
             trashObject: null,
             filter: '',
+            checked: [],
             currentPage: 1,
             paginationPosition: 'bottom',
         }
@@ -83,14 +92,12 @@ export default defineComponent({
     methods: {
         parseTime,
         parseDuration,
-
         trashModalOpen(obj) {
             this.trashObject = obj
             this.isModalActive = true
         },
         trashConfirm() {
             this.isModalActive = false
-
             this.$buefy.snackbar.open({
                 message: 'Confirmed',
                 queue: false
@@ -107,6 +114,11 @@ export default defineComponent({
                     ? value.substr(0, length) + '...'
                     : value
         },
+    },
+    watch: {
+        checked(newVal) {
+            this.$emit('update:checkedRows', newVal)
+        }
     }
 })
 

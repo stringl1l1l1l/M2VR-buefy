@@ -4,8 +4,8 @@ const minioClient = new Minio.Client({
     endPoint: import.meta.env.VITE_MINIO_BASE_HOST,
     port: parseInt(import.meta.env.VITE_MINIO_API_PORT),
     useSSL: false,
-    accessKey: 'e9lQzgHpaPwzDIoTUGXd',
-    secretKey: 'GPyjIi7YmEqiSrArTL9moV4E6p60dhKivLN678lj'
+    // accessKey: 'e9lQzgHpaPwzDIoTUGXd',
+    // secretKey: 'GPyjIi7YmEqiSrArTL9moV4E6p60dhKivLN678lj'
 });
 
 

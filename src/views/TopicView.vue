@@ -1,15 +1,15 @@
 <template>
     <div>
         <section class="section is-main-section">
-            <title-bar :title-stack="titleStack" />
+            <title-bar :next-disabled="true" :title-stack="titleStack" />
             <card-component class="has-table has-mobile-sort-spaced">
-                <table-sample :loading="loading" :default-sort-field="'topicId'" :data="list" :columns="columns"
-                    :perPage="10" width="5em" :checkable="false">
+                <table-sample :loading="loading" default-sort-field='topicId' :data="list" :columns="columns" :perPage="10"
+                    width="5em" :checkable="false">
 
                     <b-table-column width="5em" label="Status" v-slot="props">
                         <div class="column">
-                            <b-tag v-if="props.row['marked'] == 0" type="is-danger"> 未开始 </b-tag>
-                            <b-tag v-else-if="props.row['marked'] < props.row['total']"> 未完成 </b-tag>
+                            <b-tag v-if="props.row['marked'] == 0" type="is-danger"> 待标注 </b-tag>
+                            <b-tag v-else-if="props.row['marked'] < props.row['total']" type="is-info"> 进行中 </b-tag>
                             <b-tag v-else type="is-primary">已完成 </b-tag>
                         </div>
                     </b-table-column>
@@ -17,9 +17,9 @@
                     <b-table-column width="5em" label="Operation" v-slot="props">
                         <div class="column">
                             <b-button v-if="props.row['marked'] == 0" size="is-small" type="is-primary is-light"
-                                @click="next(props.row['topicId'])">开始</b-button>
+                                @click="gotoVideoChoose(props.row)">开始</b-button>
                             <b-button v-else size="is-small" type="is-info is-light"
-                                @click="next(props.row['topicId'])">继续</b-button>
+                                @click="gotoVideoChoose(props.row)">继续</b-button>
                         </div>
                     </b-table-column>
                 </table-sample>
@@ -76,8 +76,8 @@ export default defineComponent({
                 this.loading = false;
             })
         },
-        next(param) {
-            this.$router.push({ path: '/workflow/video', query: { topicId: param } });
+        gotoVideoChoose(param) {
+            this.$router.push({ path: '/workflow/video', query: { topicId: param.topicId, topic: param.topic } });
         }
     }
 })

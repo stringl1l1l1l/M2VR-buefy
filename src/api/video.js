@@ -22,5 +22,5 @@ export async function findNotMarkedBvidListWithTopicId(topicId) {
 }
 
 export async function setMarkedByBvid(bvid) {
-  return http.put("/video/setMarkedByBvid", bvid)
+  return http.put("/video/setMarkedByBvid", { bvid: bvid })
 }

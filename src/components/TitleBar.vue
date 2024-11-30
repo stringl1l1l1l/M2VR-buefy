@@ -4,32 +4,26 @@
       <div class="level-left">
         <div class="level-item">
           <ul>
-            <li
-              v-for="(title, index) in titleStack"
-              :key="index"
-            >
+            <li v-for="(title, index) in titleStack" :key="index">
               {{ title }}
             </li>
           </ul>
         </div>
       </div>
-      <!-- <div class="level-right">
-        <div class="level-item">
-          <div class="buttons is-right">
-            <a
-              href="https://github.com/vikdiesel/admin-one-vue-bulma-dashboard"
-              target="_blank"
-              class="button is-info"
-            >
-              <b-icon
-                icon="github-circle"
-                custom-size="default"
-              />
-              <span>Star on GitHub</span>
-            </a>
+      <div class="level-right">
+        <div class="columns">
+          <div class="column">
+            <b-button class="is-right is-medium" @click="previous()">
+              回退
+            </b-button>
+          </div>
+          <div v-if="enableNext" class="column">
+            <b-button class="is-righ is-medium" type="is-info" @click="$emit('next')">
+              下一步
+            </b-button>
           </div>
         </div>
-      </div> -->
+      </div>
     </div>
   </section>
 </template>
@@ -40,9 +34,19 @@ import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'TitleBar',
   props: {
+    next: Function,
+    enableNext: {
+      type: Boolean,
+      default: false
+    },
     titleStack: {
       type: Array,
       default: () => []
+    }
+  },
+  methods: {
+    previous() {
+      this.$router.back();
     }
   }
 })
