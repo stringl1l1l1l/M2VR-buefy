@@ -33,10 +33,9 @@
                         <b-button v-if="!epochDone" :loading="this.buttonLoading" type=" is-light"
                             @click="onClickNextVideo()"
                             :disabled="this.originFrames.length == 0 || radio == 0">下一个视频</b-button>
-                        <b-button v-else-if="markDone" type="is-primary " @click="gotoLabel()">视频全部标注完成，点击进行下一步</b-button>
+                        <b-button v-if="markDone" type="is-primary " @click="gotoLabel()">视频全部标注完成，点击进行下一步</b-button>
                         <b-button v-else :loading="this.buttonLoading" type="is-info is-light"
-                            :disabled="this.originFrames.length == 0 || radio == 0"
-                            @click="nextEpoch()">该轮次标注完毕，点击进行下一步</b-button>
+                            :disabled="!epochDone || radio == 0" @click="nextEpoch()">该轮次标注完毕，点击进行下一步</b-button>
 
                     </div>
                 </div>
@@ -48,7 +47,7 @@
 <script>
 import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
-import { findVideoByBvid, setMarkMaskByBvid } from '@/api/video'
+import { findVideoByBvid, setMarkByBvid } from '@/api/video'
 import { insertMark, findTodoBvidList } from '@/api/mark'
 import { getObjectsUrls } from '@/utils/minio'
 
@@ -163,13 +162,16 @@ export default {
             this.buttonLoading = false
         },
         async gotoLabel() {
+            if (this.originVideo.mark == 0 && this.markMask != 0)
+                await setMarkByBvid({ begin: this.originVideo.bvid, end: this.targetVideo.bvid, mark: (this.markMask | this.originVideo.mark) })
             this.$router.push({ path: '/workflow/label', query: { topicId: this.originVideo.topicId, topic: this.originVideo.topic } })
         },
         async nextEpoch() {
-            this.originVideoListPtr++
             if (this.originVideo.mark == 0 && this.markMask != 0)
-                await setMarkMaskByBvid(this.originVideo.bvid, (this.markMask | this.originVideo.mark))
+                await setMarkByBvid({ begin: this.originVideo.bvid, end: this.targetVideo.bvid, mark: (this.markMask | this.originVideo.mark) })
             this.markMask = 0
+            this.todoBvidListPtr = 0
+            this.originVideoListPtr++
         },
         videoFilter(video) {
             return { topic: this.originVideo.topic, bvid: video.bvid, title: video.title, author: video.author, area: video.area, tag: video.tag }

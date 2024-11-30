@@ -4,6 +4,9 @@
             <title-bar :title-stack="titleStack" />
             <section>
                 <b-field>
+                    <b-checkbox v-model="checkAll" type="is-info is-light ">
+                        <span>All</span>
+                    </b-checkbox>
                     <b-checkbox class="has-text-centered" v-for="(value, key) in this.MARK_ENUMS" :key="key"
                         v-model="checkboxGroup" :native-value="value" type="is-info is-light ">
                         <span>{{ key }}</span>
@@ -59,6 +62,7 @@ import { findUnLabeledVediosByBvidList, setLabelByBvid } from '@/api/video'
 import TableSample from '@/components/TableSample.vue'
 import { getObjectsUrls } from '@/utils/minio'
 import { mapState } from 'vuex'
+import { watch } from 'vue'
 
 export default {
     components: {
@@ -71,6 +75,8 @@ export default {
         // console.log(this.latestOperatedMarkMask)
         this.topic = this.$route.query.topic
         this.topicId = this.$route.query.topicId
+        this.checkboxGroup = this.initMarkEnumsArr
+        this.checkAll = (this.filterMarkMask == 63)
         this.initialize()
     },
     computed: {
@@ -91,7 +97,7 @@ export default {
             return this.checkboxGroup.reduce((a, b) => a | b, 0)
         },
         filteredVedioList() {
-            return this.videoList.filter(video => (video.mark & this.filterMarkMask) == video.mark)
+            return this.videoList.filter(video => video.mark && (video.mark & this.filterMarkMask))
         },
     },
     data() {
@@ -115,13 +121,15 @@ export default {
                 Dependent: 1 << 4,
                 Independent: 1 << 5,
             },
+            initMarkEnumsArr: [1, 2, 4, 8, 16, 32],
 
             topic: '',
             topicId: 0,
-            checkboxGroup: [1, 2, 4, 8, 16, 32],
+            checkboxGroup: this.initMarkEnumsArr,
             radio: 0,
             framesLoading: true,
             buttonLoading: false,
+            checkAll: false,
 
             videoList: [],
             videoListPtr: 0,
@@ -173,6 +181,9 @@ export default {
     watch: {
         curVideo() {
             this.onVideoChange()
+        },
+        checkAll(newVal) {
+            this.checkboxGroup = newVal ? this.initMarkEnumsArr : []
         }
     }
 }
