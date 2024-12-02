@@ -77,6 +77,7 @@ export default defineComponent({
             })
         },
         gotoVideoChoose(param) {
+            this.$store.commit('basic', {key: 'latestTopic', value: param})
             this.$router.push({ path: '/workflow/video', query: { topicId: param.topicId, topic: param.topic } });
         }
     }

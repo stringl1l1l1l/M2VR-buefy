@@ -23,6 +23,7 @@ const store = new Vuex.Store({
 
     /* Sample data (commonly used) */
     originVideosList: [],
+    latestTopicObj: {},
     latestOperatedMarkMask: 0,
     latestOperatedBvidsSet: new Set()
   },

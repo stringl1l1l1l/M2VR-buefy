@@ -38,6 +38,7 @@ import CardComponent from '@/components/CardComponent.vue'
 import TitleBar from '@/components/TitleBar.vue'
 import HeroBar from '@/components/HeroBar.vue'
 import TableSample from '@/components/TableSample.vue'
+import { mapState } from 'vuex'
 
 export default defineComponent({
     name: 'MarkVideoView',
@@ -49,7 +50,13 @@ export default defineComponent({
         NotificationBar
     },
     created() {
-        this.fetchData(this.$route.query.topicId);
+        if (this.latestTopicObj && this.latestTopicObj.topicId)
+            this.topicId = this.latestTopicObj.topicId
+        else if (this.$route.query && this.$route.query.topicId)
+            this.topicId = this.$route.query.topicId
+        else
+            this.$router.back()
+        this.fetchData(this.topicId);
         this.columns = Object.keys(this.video)
             .map(key => ({
                 field: key,
@@ -57,6 +64,7 @@ export default defineComponent({
             }));
     },
     computed: {
+        ...mapState(['latestTopicObj']),
         enableNext() {
             return this.checkedRows.length >= 1
         }
@@ -68,6 +76,7 @@ export default defineComponent({
             titleStack: ['Workflow', 'Video'],
             loading: true,
             columns: Array,
+            topicId: 0,
             video: {
                 bvid: '',
                 topicId: 0,
@@ -83,8 +92,8 @@ export default defineComponent({
     methods: {
         paramFilter(param) {
             return {
-                topic: this.$route.query.topic,
-                topicId: param.topicId,
+                topic: this.topic,
+                topicId: this.topicId,
                 bvid: param.bvid,
                 title: param.title,
                 author: param.author,

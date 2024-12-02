@@ -33,7 +33,7 @@
                         <b-button v-if="!epochDone" :loading="this.buttonLoading" type=" is-light"
                             @click="onClickNextVideo()"
                             :disabled="this.originFrames.length == 0 || radio == 0">下一个视频</b-button>
-                        <b-button v-if="markDone" type="is-primary " @click="gotoLabel()">视频全部标注完成，点击进行下一步</b-button>
+                        <b-button v-else-if="markDone" type="is-primary " @click="gotoLabel()">视频全部标注完成，点击进行下一步</b-button>
                         <b-button v-else :loading="this.buttonLoading" type="is-info is-light"
                             :disabled="!epochDone || radio == 0" @click="nextEpoch()">该轮次标注完毕，点击进行下一步</b-button>
 
@@ -50,6 +50,7 @@ import CardComponent from '@/components/CardComponent.vue'
 import { findVideoByBvid, setMarkByBvid } from '@/api/video'
 import { insertMark, findTodoBvidList } from '@/api/mark'
 import { getObjectsUrls } from '@/utils/minio'
+import { mapState } from 'vuex'
 
 export default {
     components: {
@@ -57,6 +58,15 @@ export default {
         CardComponent,
     },
     created() {
+        if (this.latestTopicObj) {
+            this.topicId = this.latestTopicObj.topicId
+            this.topic = this.latestTopicObj.topic
+        }
+        else if (this.$route.query && this.$route.query.topicId)
+            this.topicId = this.$route.query.topicId
+        else
+            this.$router.back()
+
         if (this.$route.query && this.$route.query.bvid)
             this.originVideosList = [this.$route.query]
         else if (this.$store.state.originVideosList)
@@ -78,6 +88,8 @@ export default {
                 Independent: 1 << 5,
             },
 
+            topicId: 0,
+            topic: '',
             originVideosList: [],
             originVideoListPtr: 0,
             targetVideo: {},
@@ -93,6 +105,7 @@ export default {
         }
     },
     computed: {
+        ...mapState(['latestTopicObj']),
         markDone() {
             return this.originVideoListPtr == this.originVideosList.length - 1 && this.epochDone
         },
