@@ -48,8 +48,14 @@ public class MarkController {
         return new ResponseResult<>(200, "操作成功", list);
     }
 
+    @GetMapping("/isMarked/{begin}/{end}")
+    public ResponseResult<Integer> isMarked(@PathVariable String begin, @PathVariable String end) {
+        Integer res = markService.isMarked(begin, end);
+        return new ResponseResult<>(200, "操作成功", res);
+    }
+
     @PostMapping("/insertMark")
-    public ResponseResult<Map<String, Integer>> insertUser(@RequestBody Mark mark) {
+    public ResponseResult<Map<String, Integer>> insertMark(@RequestBody Mark mark) {
         if (Objects.equals(mark.getMark(), MARK_EMUM.UNDEFINED.getValue()))
             return new ResponseResult<>(400, "无效的标注类型");
         int res = markService.insertMark(mark);

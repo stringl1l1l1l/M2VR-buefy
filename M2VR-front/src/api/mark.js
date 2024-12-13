@@ -19,3 +19,8 @@ export async function insertMark(mark) {
 export async function findTodoBvidList(begin, topicId) {
     return http.getRestApi("/mark/findTodoBvidList", begin, topicId)
 }
+
+export async function isMarked(begin, end) {
+    return http.getRestApi("/mark/isMarked", begin, end)
+}
+ 

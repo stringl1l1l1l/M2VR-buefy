@@ -150,6 +150,7 @@ export default {
                 if (todoBvidList[i] == this.originVideo.bvid) continue;
 
                 video = (await findVideoByBvid(todoBvidList[i])).data;
+                let isMarked = (await isMarked(this.originVideo.bvid, todoBvidList[i])).data;
                 if (video.mark) continue;
                 else break;
             }

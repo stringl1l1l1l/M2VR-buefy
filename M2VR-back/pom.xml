@@ -10,8 +10,8 @@
     </parent>
 
     <groupId>com.example</groupId>
-    <artifactId>M2VR</artifactId>
-    <version>0.0.1</version>
+    <artifactId>M2VR-back</artifactId>
+    <version>1.0</version>
     <name>M2VR</name>
 
     <properties>
@@ -119,6 +119,7 @@
     </dependencies>
 
     <build>
+    <defaultGoal>compile</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

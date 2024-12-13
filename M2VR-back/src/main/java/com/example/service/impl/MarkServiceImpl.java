@@ -33,8 +33,7 @@ public class MarkServiceImpl implements MarkService {
     }
 
     @Override
-    public List<Mark> findMarksByBegin(String begin) {
-        return markMapper.selectList(new LambdaQueryWrapper<Mark>().eq(Mark::getBegin, begin));
+    public List<Mark> findMarksByBegin(String begin) {=-09          ZCXVCV 90qq098709return markMapper.selectList(new LambdaQueryWrapper<Mark>().eq(Mark::getBegin, begin));
     }
 
     @Override
@@ -62,13 +61,25 @@ public class MarkServiceImpl implements MarkService {
         if (!Objects.isNull(markChecked))
             return 0;
 
-        Mark symmetricMark = new Mark(mark.getId(), mark.getEnd(), mark.getBegin(), mark.getMark(), mark.getTopicId());
-        return markMapper.insert(mark) + markMapper.insert(symmetricMark);
+//        Mark symmetricMark = new Mark(mark.getId(), mark.getEnd(), mark.getBegin(), mark.getMark(), mark.getTopicId());
+//        return markMapper.insert(mark) + markMapper.insert(symmetricMark);
+        return markMapper.insert(mark);
     }
 
     public int insertMarkWithOverride(Mark mark) {
         markMapper.selectOne(new LambdaQueryWrapper<Mark>());
         return markMapper.insert(mark);
     }
-
+n
+    @Override
+    public int isMarked(String begin, String end) {
+        int res = 0;
+        Mark mark = markMapper.selectOne(new LambdaQueryWrapper<Mark>()
+                .eq(Mark::getBegin, begin).eq(Mark::getEnd, end)
+                .or()
+                .eq(Mark::getBegin, end).eq(Mark::getEnd, begin));
+        if (!Objects.isNull(mark))
+            res = mark.getMark();
+        return res;
+    }
 }
